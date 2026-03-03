@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-agent
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: demo-agent
+  template:
+    metadata:
+      labels:
+        app: demo-agent
+    spec:
+      nodeSelector:
+        eks.amazonaws.com/compute-type: auto
+      tolerations:
+        - key: "eks.amazonaws.com/compute-type"
+          operator: "Exists"
+          effect: "NoSchedule"
+      # Optional: use imagePullSecrets if ECR auth is via secret (e.g. ecr-registry-secret)
+      # imagePullSecrets:
+      #   - name: ecr-registry-secret
+      containers:
+        - name: demo-agent
+          image: IMAGE_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9001
+          env:
+            - name: PORT
+              value: "8000"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            tcpSocket:
+              port: 9001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 9001
+            initialDelaySeconds: 15
+            periodSeconds: 20
