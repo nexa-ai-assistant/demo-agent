@@ -1,5 +1,5 @@
 """
-Minimal FastMCP-based MCP server exposing a single `create_booking` tool.
+Minimal MCP SDK FastMCP server exposing a single `create_booking` tool.
 
 Instructions
 ------------
@@ -8,23 +8,37 @@ Instructions
    python -m venv .venv
    source .venv/bin/activate      # On Windows: .venv\\Scripts\\activate
 
-2. Install dependencies:
+2. Install dependencies (MCP SDK server extras):
 
-   pip install fastmcp
+   pip install "mcp[server]"
 
 3. Run the server:
 
-   python booking_server.py
+   # stdio transport (e.g. for local MCP clients)
+   MCP_TRANSPORT=stdio python booking_server.py
 
-The server will start an HTTP MCP server on 0.0.0.0:9001, exposing a single
-tool named `create_booking` at the `/mcp` path.
+   # HTTP/streamable transport on port 9001
+   MCP_TRANSPORT=streamable-http PORT=9001 python booking_server.py
+
+The server will start an MCP server on 0.0.0.0:9001 (when using streamable-http),
+exposing a single tool named `create_booking` at the root (`/`) path.
 """
 
-from fastmcp import FastMCP
+import os
+from typing import Any
+
+from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
 
-mcp = FastMCP("booking-server")
+_port = int(os.environ.get("PORT", "9001"))
+mcp = FastMCP(
+    "Booking Server",
+    json_response=True,
+    host="0.0.0.0",
+    port=_port,
+    streamable_http_path="/",
+)
 
 
 @mcp.tool(
@@ -53,7 +67,7 @@ mcp = FastMCP("booking-server")
     },
     structured_output=True,
 )
-async def create_booking(booking_id: str) -> dict:
+async def create_booking(booking_id: str) -> dict[str, Any]:
     """
     Create a booking with the given ID.
 
@@ -77,8 +91,18 @@ async def create_booking(booking_id: str) -> dict:
     }
 
 
-if __name__ == "__main__":
-    # Run FastMCP over HTTP on port 9001
-    mcp.run(transport="http", host="0.0.0.0", port=9001)
+def main() -> None:
+    """
+    Run the MCP server using the configured transport.
 
+    Set MCP_TRANSPORT to either:
+    - "stdio"           for stdio-based MCP clients, or
+    - "streamable-http" for HTTP on 0.0.0.0:PORT (default 9001).
+    """
+    transport = os.environ.get("MCP_TRANSPORT", "streamable-http")
+    mcp.run(transport=transport)
+
+
+if __name__ == "__main__":
+    main()
 

@@ -8,8 +8,8 @@ RUN pip install --no-cache-dir --upgrade pip
 # Copy application code
 COPY booking_server.py /app/booking_server.py
 
-# Install Python dependencies (FastMCP).
-RUN pip install --no-cache-dir fastmcp
+# Install Python dependencies (MCP SDK server extras).
+RUN pip install --no-cache-dir "mcp[server]"
 
 # Expose MCP server port
 EXPOSE 9001
