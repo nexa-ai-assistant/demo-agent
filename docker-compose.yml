@@ -3,8 +3,14 @@ version: "3.9"
 services:
   booking-server:
     build: .
-    container_name: booking-server
+    container_name: demo-agent
     ports:
       - "9001:9001"
     restart: unless-stopped
+    networks:
+      - nexa-network
+
+networks:
+  nexa-network:
+    name: nexa-network
 
