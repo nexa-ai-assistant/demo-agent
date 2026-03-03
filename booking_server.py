@@ -21,6 +21,7 @@ tool named `create_booking` at the `/mcp` path.
 """
 
 from fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 
 
 mcp = FastMCP("booking-server")
